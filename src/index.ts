@@ -13,7 +13,13 @@ type Pending = { resolve: (v: unknown)=>void; reject: (e: Error)=>void; timer: N
 type Session = { socket: WebSocket; code: string; expires: number; access?: string; pending: Map<string, Pending> };
 const sessions = new Set<Session>();
 const wss = new WebSocketServer({noServer:true,maxPayload:32768});
-const http = app.listen(8787,"127.0.0.1");
+app.get("/health", (_req,res)=>{res.json({status:"ok",mode:"local-prototype"});});
+const http = app.listen(8787,"127.0.0.1",()=>{
+  console.log("OM MCP listening on http://127.0.0.1:8787");
+  console.log("MCP endpoint: http://127.0.0.1:8787/mcp");
+  console.log("Health check: http://127.0.0.1:8787/health");
+  console.log("Waiting for browser pairing. Local prototype only.");
+});
 http.on("upgrade",(req,socket,head)=>{
   if(req.url!=="/browser" || req.headers.origin!==origin || sessions.size>=32){socket.destroy();return;}
   wss.handleUpgrade(req,socket,head,ws=>wss.emit("connection",ws));
